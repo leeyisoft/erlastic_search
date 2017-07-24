@@ -64,9 +64,34 @@ do_request(#erls_params{host=Host, port=Port, timeout=Timeout, ctimeout=CTimeout
         Options,
         [{recv_timeout, Timeout}, {connect_timeout, CTimeout}]
     ),
-    case hackney:request(Method, <<Host/binary, ":", (list_to_binary(integer_to_list(Port)))/binary,
-                                   "/", Path/binary>>, Headers, Body,
-                         NewOptions) of
+
+    ES_user = erls_config:get_es_user(),
+    ES_user_pwd = erls_config:get_es_user_pwd(),
+
+    Url = case ES_user==undefined orelse ES_user_pwd==undefined of
+        true ->
+            <<
+                Host/binary,
+                ":",
+                (list_to_binary(integer_to_list(Port)))/binary,
+                "/",
+                Path/binary
+            >>;
+        false ->
+            <<
+                ES_user/binary,
+                ":",
+                ES_user_pwd/binary,
+                "@",
+                Host/binary,
+                ":",
+                (list_to_binary(integer_to_list(Port)))/binary,
+                "/",
+                Path/binary
+            >>
+    end,
+
+    case hackney:request(Method, Url, Headers, Body, NewOptions) of
         {ok, Status, _Headers, Client} when Status =:= 200
                                           ; Status =:= 201 ->
             case hackney:body(Client) of

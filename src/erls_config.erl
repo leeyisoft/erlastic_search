@@ -7,7 +7,7 @@
 %%% Created : 29 Mar 2016 by Brujo Benavides <>
 %%%-------------------------------------------------------------------
 -module(erls_config).
--export([get_host/0, get_port/0]).
+-export([get_host/0, get_port/0, get_es_user/0, get_es_user_pwd/0]).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -37,3 +37,20 @@ get_port() ->
         {ok, Port}->
             Port
     end.
+
+get_es_user() ->
+    case application:get_env(erlastic_search, es_user) of
+        undefined ->
+            undefined;
+        {ok, ES_user}->
+            ES_user
+    end.
+
+get_es_user_pwd() ->
+    case application:get_env(erlastic_search, es_user_pwd) of
+        undefined ->
+            undefined;
+        {ok, ES_user_pwd}->
+            ES_user_pwd
+    end.
+

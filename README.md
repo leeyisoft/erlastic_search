@@ -1,10 +1,97 @@
-ErlasticSearch
-======================================
+# ErlasticSearch
+
+[TOC]
 
 An Erlang client for [Elasticsearch](https://www.elastic.co/products/elasticsearch).
 
-Build and Run
--------------
+## Build and Run (In Erlang/OTP 20)
+
+Erlang/OTP 20 [erts-9.0] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:10] [hipe] [kernel-poll:false] [dtrace]
+
+### 编译启动
+```
+// 编译
+rm -rf _build && rm -rf rebar.lock && ./rebar3 compile
+
+// 启动
+erl -pa _build/default/lib/*/ebin -config app.config
+
+application:start(sasl).
+application:start(crypto).
+application:start(asn1).
+application:start(public_key).
+application:start(ssl).
+application:start(unicode_util_compat).
+application:start(idna).
+application:start(mimerl).
+application:start(certifi).
+application:start(ssl_verify_fun).
+application:start(metrics).
+application:start(hackney).
+application:start(erlastic_search).
+
+```
+
+### 应用
+```
+// 创建索引
+erlastic_search:create_index(<<"lee_index">>).
+
+// 删除
+erlastic_search:delete_index(<<"lee_index">>).
+// 批量删除
+erlastic_search:delete_index(<<"es_index_name*">>).
+erlastic_search:delete_index(<<"*index_name*">>).
+
+
+// 添加记录（自动生成 _id）
+erlastic_search:index_doc(<<"lee_index">>, <<"type">>, [{<<"key1">>, <<"value1">>}]).
+
+// 添加记录（自定义 _id）
+erlastic_search:index_doc_with_id(<<"lee_index">>, <<"type">>, <<"id1">>, [{<<"key1">>, <<"value1">>}]).
+
+// 查询
+erlastic_search:search(<<"lee_index">>, <<"type">>, <<"key1:value1">>).
+
+
+f().
+File = "/Users/leeyi/workspace/tools/nginx/logs/8082backend-local-access.log",
+
+{ok, S} = file:open(File, [read]),
+
+Str = io:get_line(S, ''),
+
+Sig = erlang:md5(Str),
+
+RowId = iolist_to_binary([io_lib:format("~2.16.0b", [S]) || S <- binary_to_list(Sig)])
+
+erlastic_search:index_doc_with_id(<<"lee_index">>, <<"doc">>, RowId, jsx:decode(list_to_binary(Str))).
+
+
+
+f().
+File = "/Users/leeyi/workspace/tools/nginx/logs/elk_access.log",
+
+{ok, S} = file:open(File, [read]),
+
+Str = io:get_line(S, ''),
+
+Sig = erlang:md5(Str),
+
+RowId = iolist_to_binary([io_lib:format("~2.16.0b", [S]) || S <- binary_to_list(Sig)])
+
+erlastic_search:index_doc_with_id(<<"lee_index">>, <<"doc">>, RowId, jsx:decode(list_to_binary(Str))).
+
+
+```
+
+### 调试
+```
+application:start(observer).
+observer:start().
+```
+
+## Build and Run
 
 ```shell
 $ ./rebar3 shell
@@ -56,8 +143,7 @@ Eshell V5.10.1  (abort with ^G)
           {<<"_source">>,[{<<"key1">>,<<"value1">>}]}]]}]}]}
 ```
 
-Testing
--------
+# Testing
 
 First start a local Elasticsearch:
 
@@ -71,8 +157,7 @@ Run Common Test:
 $ ./rebar3 ct
 ```
 
-Using another JSON library than `jsx`
--------------------------------------
+# Using another JSON library than `jsx`
 
 By default, we assume all the JSON erlang objects passed to us are in
 [`jsx`](https://github.com/talentdeficit/jsx)'s representation.
